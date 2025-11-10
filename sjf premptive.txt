@@ -1,0 +1,48 @@
+#include <stdio.h>
+
+int main() {
+    int n, i, j, time = 0, smallest, count = 0;
+    int at[20], bt[20], rt[20], finish;
+    float avgwt = 0, avgtt = 0, wait, turn;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    printf("Enter Arrival Time and Burst Time:\n");
+    for(i=0; i<n; i++) {
+        scanf("%d%d", &at[i], &bt[i]);
+        rt[i] = bt[i];
+    }
+
+    rt[19] = 9999;  
+    printf("Process  Waiting Time  Turnaround Time\n");
+
+    for(time = 0; count != n; time++) {
+        smallest = 19;
+        for(i=0; i<n; i++) {
+            if(at[i] <= time && rt[i] < rt[smallest] && rt[i] > 0)
+                smallest = i;
+        }
+
+        rt[smallest]--;
+
+        if(rt[smallest] == 0) {
+            count++;
+            finish = time + 1;
+            wait = finish - at[smallest] - bt[smallest];
+            turn = finish - at[smallest];
+            avgwt += wait;
+            avgtt += turn;
+            printf("P%d\t   %.0f\t\t%.0f\n", smallest+1, wait, turn);
+        }
+    }
+
+    printf("\nAverage Waiting Time = %.2f\n", avgwt/n);
+    printf("Average Turnaround Time = %.2f\n", avgtt/n);
+    return 0;
+}
+
+
+//how to run
+//gcc sjf_preemptive.c -o sjf
+//./sjf

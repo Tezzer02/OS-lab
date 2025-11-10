@@ -1,0 +1,18 @@
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+    int i;
+    printf("Array in Reverse Order:\n");
+    for(i = argc - 1; i > 0; i--) {
+        printf("%s ", argv[i]);
+    }
+    printf("\n");
+    return 0;
+}
+
+
+
+//how to run 
+//gcc parent.c -o parent
+//gcc child.c -o child
+//./parent

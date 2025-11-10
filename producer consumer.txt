@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#define BUFFER_SIZE 5
+
+int buffer[BUFFER_SIZE];
+int in = 0, out = 0;
+
+sem_t empty;     // counts empty slots
+sem_t full;      // counts filled slots
+pthread_mutex_t mutex; // mutex for critical section
+
+void* producer(void* param) {
+    int item;
+    while(1) {
+        item = rand() % 100;   // produce an item
+
+        sem_wait(&empty);      // wait if buffer is full
+        pthread_mutex_lock(&mutex);
+
+        buffer[in] = item;
+        printf("Producer produced: %d at index %d\n", item, in);
+        in = (in + 1) % BUFFER_SIZE;
+
+        pthread_mutex_unlock(&mutex);
+        sem_post(&full);       // signal item added
+
+        sleep(1);
+    }
+}
+
+void* consumer(void* param) {
+    int item;
+    while(1) {
+        sem_wait(&full);       // wait if buffer is empty
+        pthread_mutex_lock(&mutex);
+
+        item = buffer[out];
+        printf("Consumer consumed: %d from index %d\n", item, out);
+        out = (out + 1) % BUFFER_SIZE;
+
+        pthread_mutex_unlock(&mutex);
+        sem_post(&empty);      // signal slot freed
+
+        sleep(2);
+    }
+}
+
+int main() {
+    pthread_t prod, cons;
+
+    sem_init(&empty, 0, BUFFER_SIZE); // initially buffer is empty
+    sem_init(&full, 0, 0);            // no items initially
+    pthread_mutex_init(&mutex, NULL);
+
+    pthread_create(&prod, NULL, producer, NULL);
+    pthread_create(&cons, NULL, consumer, NULL);
+
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    return 0;
+}
+
+//how to run
+//gcc producer_consumer.c -o pc -lpthread
+//./pc
+
+//

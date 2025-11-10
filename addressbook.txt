@@ -1,0 +1,82 @@
+#!/bin/bash
+
+file="address.txt"
+
+while true
+do
+echo " "
+echo "1. Create Address Book"
+echo "2. View Address Book"
+echo "3. Insert a Record"
+echo "4. Delete a Record"
+echo "5. Modify a Record"
+echo "6. Exit"
+echo " "
+echo -n "Enter choice: "
+read ch
+
+case $ch in
+
+1)
+> $file
+echo "Address Book Created"
+;;
+
+2)
+if [ -s $file ]
+then
+cat $file
+else
+echo "Address Book is Empty"
+fi
+;;
+
+3)
+echo -n "Enter Name: "
+read name
+echo -n "Enter Phone: "
+read phone
+echo -n "Enter Email: "
+read email
+echo "$name $phone $email" >> $file
+echo "Record Inserted"
+;;
+
+4)
+echo -n "Enter Name to Delete: "
+read dn
+grep -v "^$dn " $file > temp && mv temp $file
+echo "Record Deleted (if existed)"
+;;
+
+5)
+echo -n "Enter Name to Modify: "
+read mn
+grep -v "^$mn " $file > temp && mv temp $file
+echo -n "Enter New Name: "
+read name
+echo -n "Enter New Phone: "
+read phone
+echo -n "Enter New Email: "
+read email
+echo "$name $phone $email" >> $file
+echo "Record Modified"
+;;
+
+6)
+echo "Exiting..."
+exit
+;;
+
+*)
+echo "Invalid Choice"
+;;
+
+esac
+done
+
+
+
+#how to run
+#chmod +x addressbook.sh
+#./addressbook.sh 

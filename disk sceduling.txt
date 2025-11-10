@@ -1,0 +1,103 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void sort(int arr[], int n) {
+    for(int i=0;i<n-1;i++)
+        for(int j=i+1;j<n;j++)
+            if(arr[i]>arr[j]) {
+                int temp=arr[i];
+                arr[i]=arr[j];
+                arr[j]=temp;
+            }
+}
+
+int main() {
+    int req[50], n, head, i, j, total = 0;
+    int left[50], right[50], l = 0, r = 0;
+
+    printf("Enter number of disk requests: ");
+    scanf("%d", &n);
+
+    printf("Enter disk requests (track numbers): ");
+    for(i = 0; i < n; i++)
+        scanf("%d", &req[i]);
+
+    printf("Enter initial head position: ");
+    scanf("%d", &head);
+
+    printf("\n--- SSTF (Shortest Seek Time First) ---\n");
+    int visited[50]={0}, min, pos, diff;
+    int head_sstf = head, total_sstf = 0;
+
+    for(i=0;i<n;i++) {
+        min = 9999;
+        for(j=0;j<n;j++) {
+            if(!visited[j]) {
+                diff = abs(req[j] - head_sstf);
+                if(diff < min) {
+                    min = diff;
+                    pos = j;
+                }
+            }
+        }
+        total_sstf += abs(req[pos] - head_sstf);
+        head_sstf = req[pos];
+        visited[pos] = 1;
+    }
+    printf("Total Head Movement (SSTF): %d\n", total_sstf);
+
+    printf("\n--- SCAN (Head moving outward → increasing direction) ---\n");
+    int max = 199; // Assuming disk size: 0 to 199
+    for(i=0;i<n;i++) {
+        if(req[i] < head) left[l++] = req[i];
+        else right[r++] = req[i];
+    }
+    sort(left, l);
+    sort(right, r);
+
+    int head_scan = head, total_scan = 0;
+
+    // Move towards higher tracks first (away from spindle)
+    for(i = 0; i < r; i++) {
+        total_scan += abs(right[i] - head_scan);
+        head_scan = right[i];
+    }
+
+    total_scan += abs(max - head_scan);
+    head_scan = max;
+
+    for(i = l-1; i >= 0; i--) {
+        total_scan += abs(left[i] - head_scan);
+        head_scan = left[i];
+    }
+    printf("Total Head Movement (SCAN): %d\n", total_scan);
+
+    printf("\n--- C-LOOK (Circular look, head moves upward only) ---\n");
+    int head_clook = head, total_clook = 0;
+
+    for(i = 0; i < r; i++) {
+        total_clook += abs(right[i] - head_clook);
+        head_clook = right[i];
+    }
+
+    if(l > 0) {
+        total_clook += abs(head_clook - left[0]);
+        head_clook = left[0];
+    }
+
+    for(i = 1; i < l; i++) {
+        total_clook += abs(left[i] - head_clook);
+        head_clook = left[i];
+    }
+
+    printf("Total Head Movement (C-LOOK): %d\n", total_clook);
+
+    return 0;
+}
+
+//how to run
+//gcc disk.c -o disk
+//./disk
+//Enter number of disk requests: 8
+//Enter disk requests: 98 183 37 122 14 124 65 67
+//Enter initial head position: 53

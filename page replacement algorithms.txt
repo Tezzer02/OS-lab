@@ -1,0 +1,117 @@
+#include <stdio.h>
+
+int search(int key, int frame[], int f) {
+    for (int i = 0; i < f; i++)
+        if (frame[i] == key)
+            return 1;
+    return 0;
+}
+
+int findLRU(int time[], int f) {
+    int min = time[0], pos = 0;
+    for (int i = 1; i < f; i++) {
+        if (time[i] < min) {
+            min = time[i];
+            pos = i;
+        }
+    }
+    return pos;
+}
+
+int findOptimal(int pages[], int frame[], int index, int n, int f) {
+    int pos = -1, farthest = index;
+    for (int i = 0; i < f; i++) {
+        int j;
+        for (j = index; j < n; j++) {
+            if (frame[i] == pages[j]) {
+                if (j > farthest) {
+                    farthest = j;
+                    pos = i;
+                }
+                break;
+            }
+        }
+        if (j == n)
+            return i;
+    }
+    return (pos == -1) ? 0 : pos;
+}
+
+int main() {
+    int pages[50], frame[10], time[10], n, f, i, j, k, pos, pageFaults;
+
+    printf("Enter number of pages: ");
+    scanf("%d", &n);
+    printf("Enter page reference string: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &pages[i]);
+    printf("Enter number of frames (minimum 3): ");
+    scanf("%d", &f);
+
+    printf("\n--- FCFS Page Replacement ---\n");
+    for (i = 0; i < f; i++)
+        frame[i] = -1;
+    pageFaults = 0;
+    j = 0;
+    for (i = 0; i < n; i++) {
+        if (!search(pages[i], frame, f)) {
+            frame[j] = pages[i];
+            j = (j + 1) % f;
+            pageFaults++;
+        }
+    }
+    printf("Page Faults (FCFS): %d\n", pageFaults);
+
+    printf("\n--- LRU Page Replacement ---\n");
+    for (i = 0; i < f; i++) {
+        frame[i] = -1;
+        time[i] = 0;
+    }
+    pageFaults = 0;
+    for (i = 0, k = 0; i < n; i++) {
+        if (search(pages[i], frame, f)) {
+            for (j = 0; j < f; j++)
+                if (frame[j] == pages[i])
+                    time[j] = k++;
+        } else {
+            pos = -1;
+            for (j = 0; j < f; j++)
+                if (frame[j] == -1)
+                    pos = j;
+
+            if (pos == -1)
+                pos = findLRU(time, f);
+
+            frame[pos] = pages[i];
+            time[pos] = k++;
+            pageFaults++;
+        }
+    }
+    printf("Page Faults (LRU): %d\n", pageFaults);
+
+    printf("\n--- Optimal Page Replacement ---\n");
+    for (i = 0; i < f; i++)
+        frame[i] = -1;
+    pageFaults = 0;
+    for (i = 0; i < n; i++) {
+        if (!search(pages[i], frame, f)) {
+            pos = -1;
+            for (j = 0; j < f; j++)
+                if (frame[j] == -1)
+                    pos = j;
+
+            if (pos == -1)
+                pos = findOptimal(pages, frame, i + 1, n, f);
+
+            frame[pos] = pages[i];
+            pageFaults++;
+        }
+    }
+    printf("Page Faults (Optimal): %d\n", pageFaults);
+
+    return 0;
+}
+
+//how to run
+//gcc pager.c -o pager
+//./pager

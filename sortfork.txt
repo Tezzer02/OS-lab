@@ -1,0 +1,113 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+void bubbleSort(int a[], int n) {
+    int i, j, temp;
+    for(i=0; i<n-1; i++) {
+        for(j=0; j<n-1-i; j++) {
+            if(a[j] > a[j+1]) {
+                temp = a[j];
+                a[j] = a[j+1];
+                a[j+1] = temp;
+            }
+        }
+    }
+}
+
+void selectionSort(int a[], int n) {
+    int i, j, min, temp;
+    for(i=0; i<n-1; i++) {
+        min = i;
+        for(j=i+1; j<n; j++) {
+            if(a[j] < a[min])
+                min = j;
+        }
+        temp = a[min];
+        a[min] = a[i];
+        a[i] = temp;
+    }
+}
+
+int main() {
+    int a[50], n, i;
+    pid_t pid;
+
+    printf("Enter number of integers: ");
+    scanf("%d", &n);
+
+    printf("Enter the integers:\n");
+    for(i=0; i<n; i++)
+        scanf("%d", &a[i]);
+
+    pid = fork();
+
+    if(pid == 0) {
+        printf("\nChild Process ID: %d\n", getpid());
+        printf("Child sorting using Selection Sort...\n");
+
+        selectionSort(a, n);
+
+        printf("Child Sorted List: ");
+        for(i=0; i<n; i++)
+            printf("%d ", a[i]);
+        printf("\n");
+
+        // Uncomment this sleep to demonstrate ORPHAN
+        // sleep(10);
+
+    } else {
+        wait(NULL);   // Parent waits → prevents zombie
+        printf("\nParent Process ID: %d\n", getpid());
+        printf("Parent sorting using Bubble Sort...\n");
+
+        bubbleSort(a, n);
+
+        printf("Parent Sorted List: ");
+        for(i=0; i<n; i++)
+            printf("%d ", a[i]);
+        printf("\n");
+
+        // Uncomment this sleep to demonstrate ZOMBIE
+        // sleep(10);
+    }
+    return 0;
+}
+
+
+
+
+//how to run
+//gcc sortfork.c -o sortfork
+//./sortfork
+
+//TO DEMONSTRATE ORPHAN:
+//Go to child code and uncomment:
+
+//sleep(10);
+
+
+//In this case, parent finishes early and exits. The child still runs. During that time child becomes orphan and is adopted by init.
+
+//Run and in another terminal check:
+
+//ps -l
+
+
+//The child’s parent PID (PPID) will become 1.
+
+//TO DEMONSTRATE ZOMBIE:
+//Go to parent code and uncomment:
+
+//sleep(10);
+
+
+//This makes parent delay without calling wait(). Meanwhile child finishes execution and becomes zombie.
+
+//Run program and quickly check:
+
+//ps -l
+
+
+//Child process will show status Z (zombie).

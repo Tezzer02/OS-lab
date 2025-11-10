@@ -1,0 +1,49 @@
+#include <stdio.h>
+
+int main() {
+    int n, tq, i, time = 0, remain, flag = 0;
+    int at[20], bt[20], rt[20];
+    float avgwt = 0, avgtt = 0;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    remain = n;
+
+    printf("Enter Arrival Time and Burst Time:\n");
+    for(i=0; i<n; i++) {
+        scanf("%d%d", &at[i], &bt[i]);
+        rt[i] = bt[i];
+    }
+
+    printf("Enter Time Quantum: ");
+    scanf("%d", &tq);
+
+    printf("\nProcess  Waiting Time  Turnaround Time\n");
+
+    for(time = 0, i = 0; remain != 0;) {
+        if(rt[i] > 0 && at[i] <= time) {
+            if(rt[i] > tq) {
+                time += tq;
+                rt[i] -= tq;
+            } else {
+                time += rt[i];
+                int wait = time - at[i] - bt[i];
+                int turn = time - at[i];
+                avgwt += wait;
+                avgtt += turn;
+                printf("P%d\t   %d\t\t%d\n", i+1, wait, turn);
+                rt[i] = 0;
+                remain--;
+            }
+        }
+        i = (i + 1) % n;
+    }
+
+    printf("\nAverage Waiting Time = %.2f\n", avgwt/n);
+    printf("Average Turnaround Time = %.2f\n", avgtt/n);
+    return 0;
+}
+//how to run
+//gcc round_robin.c -o round_robin
+.///round_robin

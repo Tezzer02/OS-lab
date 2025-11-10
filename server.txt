@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <string.h>
+
+#define SHM_KEY  ftok("shmfile",65)
+
+int main() {
+    key_t key = SHM_KEY;
+    int shmid;
+    char *shared_memory;
+
+    // Create shared memory segment
+    shmid = shmget(key, 1024, 0666 | IPC_CREAT);
+    shared_memory = (char*) shmat(shmid, NULL, 0);
+
+    printf("Enter message to store in shared memory: ");
+    fgets(shared_memory, 1024, stdin);
+
+    printf("Message written to shared memory.\n");
+
+    shmdt(shared_memory);
+    return 0;
+}
+
+//how to run
+//gcc server.c -o server
+//gcc client.c -o client
+//./server
+//Hello from Shared Memory!
+//./client
+//Data read from shared memory:
+//Hello from Shared Memory!

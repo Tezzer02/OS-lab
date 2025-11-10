@@ -1,0 +1,75 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t resource;           // controls access to shared data
+pthread_mutex_t rmutex;   // protects read_count
+int read_count = 0;       // number of active readers
+int shared_data = 0;      // the shared resource
+
+void* reader(void* arg) {
+    int id = ((int)arg);
+
+   for(int k = 0; k < 10; k++) {
+        pthread_mutex_lock(&rmutex);
+        read_count++;
+        if(read_count == 1)
+            sem_wait(&resource);
+        pthread_mutex_unlock(&rmutex);
+
+        printf("Reader %d reads shared_data = %d\n", id, shared_data);
+        sleep(1);
+
+        pthread_mutex_lock(&rmutex);
+        read_count--;
+        if(read_count == 0)
+            sem_post(&resource);
+        pthread_mutex_unlock(&rmutex);
+
+        sleep(1);
+    }
+}
+
+void* writer(void* arg) {
+    int id = ((int)arg);
+
+ for(int k = 0; k < 10; k++){
+        sem_wait(&resource);
+
+        shared_data++;
+        printf("Writer %d writes shared_data = %d\n", id, shared_data);
+        sleep(1);
+
+        sem_post(&resource);
+        sleep(1);
+    }
+}
+
+int main() {
+    pthread_t r[5], w[2];
+    int i, id_r[5], id_w[2];
+
+    sem_init(&resource, 0, 1);
+    pthread_mutex_init(&rmutex, NULL);
+
+    for(i=0; i<5; i++) {
+        id_r[i] = i+1;
+        pthread_create(&r[i], NULL, reader, &id_r[i]);
+    }
+
+    for(i=0; i<2; i++) {
+        id_w[i] = i+1;
+        pthread_create(&w[i], NULL, writer, &id_w[i]);
+    }
+
+    for(i=0; i<5; i++)
+        pthread_join(r[i], NULL);
+    for(i=0; i<2; i++)
+        pthread_join(w[i], NULL);
+
+    return 0;
+}
+//how to run
+//gcc reader_writer.c -o rw -lpthread
+//./rw

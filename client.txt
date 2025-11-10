@@ -1,0 +1,24 @@
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+#define SHM_KEY  ftok("shmfile",65)
+
+int main() {
+    key_t key = SHM_KEY;
+    int shmid;
+    char *shared_memory;
+
+    // Access the shared memory segment
+    shmid = shmget(key, 1024, 0666);
+    shared_memory = (char*) shmat(shmid, NULL, 0);
+
+    printf("Data read from shared memory:\n%s\n", shared_memory);
+
+    shmdt(shared_memory);
+
+    // Destroy shared memory after reading
+    shmctl(shmid, IPC_RMID, NULL);
+
+    return 0;
+}
